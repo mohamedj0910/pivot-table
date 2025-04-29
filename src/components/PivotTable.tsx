@@ -62,7 +62,7 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
   };
 
   // Recursively render header rows
-  const renderHeaderRows = (node: any,  maxDepth: number): JSX.Element[][] => {
+  const renderHeaderRows = (node: any, _depth: number, maxDepth: number): JSX.Element[][] => {
     const rows: JSX.Element[][] = Array.from({ length: maxDepth }, () => []);
     const fillRows = (node: any, level: number, colSpanCalc: () => number, parentKey = ""): number => {
       let totalColSpan = 0;
@@ -94,7 +94,7 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
     const maxDepth = columns.length;
   
     const headerRows =
-      maxDepth > 0 ? renderHeaderRows(tree, 0) : [];
+      maxDepth > 0 ? renderHeaderRows(tree, 0, maxDepth) : [];
   
     return (
       <thead>
