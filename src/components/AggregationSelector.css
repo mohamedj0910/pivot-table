@@ -1,0 +1,26 @@
+.aggregation-selector {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  
+  .badge {
+    padding: 4px 8px;
+    border: 1px solid #aaa;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 12px;
+    background-color: #f0f0f0;
+  }
+  
+  .badge.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
