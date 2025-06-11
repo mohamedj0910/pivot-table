@@ -1,5 +1,3 @@
-
-
 const detectFieldTypes = (
     data: Record<string, string>[],
     headers: string[]

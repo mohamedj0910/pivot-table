@@ -32,11 +32,15 @@ const App: React.FC = () => {
           }, {} as Record<string, string>)
         );
 
+        
         const types: Record<string, FieldType> = {};
         for (const field of headers) {
           const sample = rowsData[0]?.[field];
           types[field] = !isNaN(Number(sample)) ? "number" : "string";
         }
+        console.log(headers)
+        console.log(rowsData)
+        console.log(types)
 
         // ✅ Reset everything
         setRows([]);
