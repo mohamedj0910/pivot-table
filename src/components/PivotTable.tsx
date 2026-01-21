@@ -11,13 +11,20 @@ interface PivotProps {
 
 const aggregators: Record<string, (arr: any[]) => number> = {
   Sum: (arr) => arr.reduce((a, b) => a + b, 0),
-  Average: (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0),
+  Average: (arr) =>
+    arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0,
   Min: (arr) => Math.min(...arr),
   Max: (arr) => Math.max(...arr),
   Count: (arr) => arr.length,
 };
 
-const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTypes }) => {
+const PivotTable: React.FC<PivotProps> = ({
+  data,
+  rows,
+  columns,
+  values,
+  fieldTypes,
+}) => {
   const groupData = () => {
     const grouped: any = {};
     for (const row of data) {
@@ -25,9 +32,11 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
       const colKey = columns.map((c) => row[c]).join("|||"); // internal join
       const rowKeyStr = rowKey.join("|||");
       if (!grouped[rowKeyStr]) grouped[rowKeyStr] = { rowKey, cols: {} };
-      if (!grouped[rowKeyStr].cols[colKey]) grouped[rowKeyStr].cols[colKey] = {};
+      if (!grouped[rowKeyStr].cols[colKey])
+        grouped[rowKeyStr].cols[colKey] = {};
       for (const { field } of values) {
-        const value = fieldTypes[field] === "number" ? Number(row[field]) : row[field];
+        const value =
+          fieldTypes[field] === "number" ? Number(row[field]) : row[field];
         const cell = grouped[rowKeyStr].cols[colKey];
         if (!cell[field]) cell[field] = [];
         cell[field].push(value);
@@ -39,11 +48,13 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
   const grouped = groupData();
   const rowKeys = Object.keys(grouped);
   const colKeys = Array.from(
-    new Set(rowKeys.flatMap((rk) => Object.keys(grouped[rk].cols)))
+    new Set(rowKeys.flatMap((rk) => Object.keys(grouped[rk].cols))),
   ).sort();
 
   const getAggregatedValue = (values: any[], aggregation: string) =>
-    aggregators[aggregation](values.filter((v) => typeof v === "number" || aggregation === "Count"));
+    aggregators[aggregation](
+      values.filter((v) => typeof v === "number" || aggregation === "Count"),
+    );
 
   // Build multi-level header tree
   const buildHeaderTree = () => {
@@ -62,9 +73,18 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
   };
 
   // Recursively render header rows
-  const renderHeaderRows = (node: any, _depth: number, maxDepth: number): JSX.Element[][] => {
+  const renderHeaderRows = (
+    node: any,
+    _depth: number,
+    maxDepth: number,
+  ): JSX.Element[][] => {
     const rows: JSX.Element[][] = Array.from({ length: maxDepth }, () => []);
-    const fillRows = (node: any, level: number, colSpanCalc: () => number, parentKey = ""): number => {
+    const fillRows = (
+      node: any,
+      level: number,
+      colSpanCalc: () => number,
+      parentKey = "",
+    ): number => {
       let totalColSpan = 0;
 
       for (const key of Object.keys(node)) {
@@ -75,9 +95,13 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
           : values.reduce((acc, v) => acc + v.aggregations.length, 0);
 
         rows[level].push(
-          <th key={fullKey} colSpan={colSpan} rowSpan={Object.keys(subTree).length ? 1 : maxDepth - level}>
+          <th
+            key={fullKey}
+            colSpan={colSpan}
+            rowSpan={Object.keys(subTree).length ? 1 : maxDepth - level}
+          >
             {key}
-          </th>
+          </th>,
         );
         totalColSpan += colSpan;
       }
@@ -85,17 +109,18 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
       return totalColSpan;
     };
 
-    fillRows(node, 0, () => values.reduce((acc, v) => acc + v.aggregations.length, 0));
+    fillRows(node, 0, () =>
+      values.reduce((acc, v) => acc + v.aggregations.length, 0),
+    );
     return rows;
   };
 
   const renderHeader = () => {
     const tree = buildHeaderTree();
     const maxDepth = columns.length;
-  
-    const headerRows =
-      maxDepth > 0 ? renderHeaderRows(tree, 0, maxDepth) : [];
-  
+
+    const headerRows = maxDepth > 0 ? renderHeaderRows(tree, 0, maxDepth) : [];
+
     return (
       <thead>
         {headerRows.map((row, i) => (
@@ -110,14 +135,17 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
             {i === 0 &&
               values.flatMap(({ field, aggregations }) =>
                 aggregations.map((agg) => (
-                  <th  key={`total-${field}-${agg}`} rowSpan={headerRows.length + 1}>
+                  <th
+                    key={`total-${field}-${agg}`}
+                    rowSpan={headerRows.length + 1}
+                  >
                     Total {field} ({agg})
                   </th>
-                ))
+                )),
               )}
           </tr>
         ))}
-  
+
         {/* If no column headers, just show field headers in one row */}
         {maxDepth === 0 && (
           <tr className="col-header">
@@ -130,19 +158,19 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
                   <th key={`${colKey}-${field}-${agg}`}>
                     {field} ({agg})
                   </th>
-                ))
-              )
+                )),
+              ),
             )}
             {values.flatMap(({ field, aggregations }) =>
               aggregations.map((agg) => (
                 <th key={`total-${field}-${agg}`}>
                   Total {field} ({agg})
                 </th>
-              ))
+              )),
             )}
           </tr>
         )}
-  
+
         {/* Only show bottom metric header row if columns exist */}
         {maxDepth > 0 && (
           <tr>
@@ -152,40 +180,80 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
                   <th className="agg-header" key={`${colKey}-${field}-${agg}`}>
                     {field} ({agg})
                   </th>
-                ))
-              )
+                )),
+              ),
             )}
           </tr>
         )}
       </thead>
     );
   };
-  
 
   const renderBody = () => {
-    return rowKeys.sort().map((rowKeyStr) => {
-      const { rowKey, cols } = grouped[rowKeyStr];
+    const sortedRowKeys = [...rowKeys].sort();
+    const rowsData = sortedRowKeys.map((key) => grouped[key].rowKey);
+    const rowCount = sortedRowKeys.length;
+    const colCount = rows.length;
+
+    const spans: number[][] = Array.from({ length: rowCount }, () =>
+      Array(colCount).fill(1),
+    );
+    const visible: boolean[][] = Array.from({ length: rowCount }, () =>
+      Array(colCount).fill(true),
+    );
+
+    for (let i = rowCount - 1; i > 0; i--) {
+      for (let j = 0; j < colCount; j++) {
+        const curr = rowsData[i][j];
+        const prev = rowsData[i - 1][j];
+
+        let parentsMatch = true;
+        for (let k = 0; k < j; k++) {
+          if (rowsData[i][k] !== rowsData[i - 1][k]) {
+            parentsMatch = false;
+            break;
+          }
+        }
+
+        if (curr === prev && parentsMatch) {
+          spans[i - 1][j] += spans[i][j];
+          visible[i][j] = false;
+        }
+      }
+    }
+
+    return sortedRowKeys.map((rowKeyStr, rowIndex) => {
+      const { cols } = grouped[rowKeyStr];
       const rowAggTotals: Record<string, number> = {};
 
       return (
         <tr key={rowKeyStr}>
-          {rowKey.map((value:any, i:any) => (
-            <td key={`${rowKeyStr}-row-${i}`}>{value}</td>
-          ))}
+          {rowsData[rowIndex].map((value: any, colIndex: number) =>
+            visible[rowIndex][colIndex] ? (
+              <td
+                key={`${rowKeyStr}-row-${colIndex}`}
+                rowSpan={spans[rowIndex][colIndex]}
+                style={{ verticalAlign: "top", background: "#fff" }} // Optional: Style for better look
+              >
+                {value}
+              </td>
+            ) : null,
+          )}
           {colKeys.flatMap((colKey) =>
             values.flatMap(({ field, aggregations }) =>
               aggregations.map((agg) => {
                 const cellValues = cols[colKey]?.[field] || [];
                 const val = getAggregatedValue(cellValues, agg);
                 const key = `${field}-${agg}`;
-                rowAggTotals[key] = (rowAggTotals[key] || 0) + (Number.isFinite(val) ? val : 0);
+                rowAggTotals[key] =
+                  (rowAggTotals[key] || 0) + (Number.isFinite(val) ? val : 0);
                 return (
                   <td key={`${rowKeyStr}-${colKey}-${field}-${agg}`}>
                     {Number.isFinite(val) && val !== 0 ? val.toFixed(2) : ""}
                   </td>
                 );
-              })
-            )
+              }),
+            ),
           )}
           {values.flatMap(({ field, aggregations }) =>
             aggregations.map((agg) => {
@@ -196,7 +264,7 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
                   <strong>{val !== 0 ? val.toFixed(2) : ""}</strong>
                 </td>
               );
-            })
+            }),
           )}
         </tr>
       );
@@ -205,33 +273,38 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
 
   const renderGrandTotal = () => {
     const colAggTotals: Record<string, number> = {};
-  
+
     return (
       <tr>
         {rows.length > 0 ? (
-          <td colSpan={rows.length}><strong>Total</strong></td>
+          <td colSpan={rows.length}>
+            <strong>Total</strong>
+          </td>
         ) : null}
         {colKeys.flatMap((colKey) =>
           values.flatMap(({ field, aggregations }) =>
             aggregations.map((agg) => {
               const key = `${field}-${agg}`;
               const totalValues: any[] = [];
-  
+
               for (const rowKey of rowKeys) {
                 const vals = grouped[rowKey].cols[colKey]?.[field] || [];
                 totalValues.push(...vals);
               }
-  
+
               const val = getAggregatedValue(totalValues, agg);
-              colAggTotals[key] = (colAggTotals[key] || 0) + (Number.isFinite(val) ? val : 0);
-  
+              colAggTotals[key] =
+                (colAggTotals[key] || 0) + (Number.isFinite(val) ? val : 0);
+
               return (
                 <td key={`grand-${colKey}-${field}-${agg}`}>
-                  <strong>{Number.isFinite(val) && val !== 0 ? val.toFixed(2) : ""}</strong>
+                  <strong>
+                    {Number.isFinite(val) && val !== 0 ? val.toFixed(2) : ""}
+                  </strong>
                 </td>
               );
-            })
-          )
+            }),
+          ),
         )}
         {values.flatMap(({ field, aggregations }) =>
           aggregations.map((agg) => {
@@ -242,12 +315,11 @@ const PivotTable: React.FC<PivotProps> = ({ data, rows, columns, values, fieldTy
                 <strong>{val !== 0 ? val.toFixed(2) : ""}</strong>
               </td>
             );
-          })
+          }),
         )}
       </tr>
     );
   };
-  
 
   return (
     <table
